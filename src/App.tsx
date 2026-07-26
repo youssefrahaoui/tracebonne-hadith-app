@@ -7,6 +7,11 @@ import { VideoCanvasPreview } from './components/VideoCanvasPreview';
 import { VideoControls } from './components/VideoControls';
 import { ExportModal } from './components/ExportModal';
 import { HelpModal } from './components/HelpModal';
+import { ArticlesSection } from './components/ArticlesSection';
+import { Footer } from './components/Footer';
+import { LegalModal, LegalModalType } from './components/LegalModal';
+import { AdminLoginModal } from './components/AdminLoginModal';
+import { AdminDashboard } from './components/AdminDashboard';
 
 import { BackgroundTheme, HadithSegment, TextCustomization, AudioState, ExportProgress, BrandingConfig } from './types';
 import { BACKGROUND_THEMES, DEFAULT_HADITHS, BRANDING } from './data/themes';
@@ -77,6 +82,17 @@ export default function App() {
   });
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+  const [legalModalType, setLegalModalType] = useState<LegalModalType>(null);
+  const [showAdminLogin, setShowAdminLogin] = useState<boolean>(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState<boolean>(false);
+
+  // Detect secret URL parameter (?access=admin) to open Admin Login automatically
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('access') === 'admin') {
+      setShowAdminLogin(true);
+    }
+  }, []);
 
   // Audio HTML Elements references
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -426,20 +442,14 @@ export default function App() {
 
       </main>
 
+      {/* ARTICLES & INSIGHTS SECTION */}
+      <ArticlesSection />
+
       {/* FOOTER */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-4 px-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>
-            صانع فيديوهات الأحاديث النبوية الاحترافي | تصميم عالي الجودة لـ TikTok, Shorts, Reels
-          </span>
-          <div className="flex items-center gap-2">
-            <span>القناة:</span>
-            <span dir="ltr" className="font-mono text-amber-400 font-bold">
-              {branding.handle}
-            </span>
-          </div>
-        </div>
-      </footer>
+      <Footer
+        onOpenLegalModal={setLegalModalType}
+        channelHandle={branding.handle}
+      />
 
       {/* MODALS */}
       {showExportModal && (
@@ -453,6 +463,24 @@ export default function App() {
       {showHelpModal && (
         <HelpModal onClose={() => setShowHelpModal(false)} />
       )}
+
+      {legalModalType && (
+        <LegalModal
+          type={legalModalType}
+          onClose={() => setLegalModalType(null)}
+        />
+      )}
+
+      <AdminLoginModal
+        isOpen={showAdminLogin}
+        onClose={() => setShowAdminLogin(false)}
+        onSuccess={() => setShowAdminDashboard(true)}
+      />
+
+      <AdminDashboard
+        isOpen={showAdminDashboard}
+        onClose={() => setShowAdminDashboard(false)}
+      />
     </div>
   );
 }
