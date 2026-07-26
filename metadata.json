@@ -1,0 +1,6 @@
+{
+  "name": "Hadith Video Generator",
+  "description": "High-end 9:16 Hadith Video Generator with 19 themes, audio sync, custom paste, and MP4 video export.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
