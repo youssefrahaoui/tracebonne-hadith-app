@@ -65,3 +65,8 @@ export interface ExportProgress {
   statusMessage: string;
   downloadUrl: string | null;
 }
+
+export interface BrandingConfig {
+  handle: string;
+  logoUrl: string;
+}

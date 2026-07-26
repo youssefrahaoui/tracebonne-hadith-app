@@ -1,4 +1,4 @@
-import { BackgroundTheme, HadithSegment, TextCustomization } from '../types';
+import { BackgroundTheme, HadithSegment, TextCustomization, BrandingConfig } from '../types';
 import { BRANDING } from '../data/themes';
 import { createOutroAudioBlob } from './hadithUtils';
 
@@ -10,6 +10,7 @@ interface ExportParams {
   outroAudioBlob?: Blob | null;
   outroDuration?: number;
   textConfig: TextCustomization;
+  branding?: BrandingConfig;
   onProgress: (progress: number, status: string) => void;
 }
 
@@ -21,6 +22,7 @@ export async function exportVideoMP4({
   outroAudioBlob,
   outroDuration,
   textConfig,
+  branding,
   onProgress,
 }: ExportParams): Promise<Blob> {
   return new Promise(async (resolve, reject) => {
@@ -56,7 +58,7 @@ export async function exportVideoMP4({
       await new Promise<void>((res) => {
         logoImg.onload = () => res();
         logoImg.onerror = () => res();
-        logoImg.src = BRANDING.logoUrl;
+        logoImg.src = branding?.logoUrl || BRANDING.logoUrl;
       });
 
       onProgress(15, 'جاري إعداد محرك الصوت المدمج...');
@@ -255,7 +257,7 @@ export async function exportVideoMP4({
             // Measure handle text
             ctx.font = 'bold 32px monospace, Cairo, sans-serif';
             ctx.direction = 'ltr';
-            const handleText = BRANDING.handle;
+            const handleText = branding?.handle || BRANDING.handle;
             const textMetrics = ctx.measureText(handleText);
             const textWidth = textMetrics.width;
 
@@ -395,7 +397,7 @@ export async function exportVideoMP4({
           ctx.fillStyle = '#f59e0b';
           ctx.textAlign = 'center';
           ctx.direction = 'ltr';
-          ctx.fillText(BRANDING.handle, width / 2, height * 0.38);
+          ctx.fillText(branding?.handle || BRANDING.handle, width / 2, height * 0.38);
 
           // Outro Card Box
           const cardW = width - 180;

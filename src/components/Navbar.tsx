@@ -1,13 +1,14 @@
 import React from 'react';
 import { Video, Sparkles, Share2, Info, BookOpen } from 'lucide-react';
-import { BRANDING } from '../data/themes';
+import { BrandingConfig } from '../types';
 
 interface NavbarProps {
+  branding: BrandingConfig;
   onExportClick: () => void;
   onHelpClick: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onExportClick, onHelpClick }) => {
+export const Navbar: React.FC<NavbarProps> = ({ branding, onExportClick, onHelpClick }) => {
   return (
     <header className="sticky top-0 z-40 bg-[#0f172a]/90 backdrop-blur-md border-b border-amber-500/20 px-4 lg:px-8 py-3.5">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -17,7 +18,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onExportClick, onHelpClick }) =>
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-amber-300 rounded-full blur opacity-50 group-hover:opacity-80 transition duration-300"></div>
             <img
-              src={BRANDING.logoUrl}
+              src={branding.logoUrl}
               alt="Channel Logo"
               className="relative w-11 h-11 rounded-full object-cover border-2 border-amber-400 shadow-md"
             />
@@ -34,7 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onExportClick, onHelpClick }) =>
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <span>القناة الرسمية:</span>
               <span dir="ltr" className="font-mono text-amber-300 font-bold bg-slate-800 px-1.5 py-0.2 rounded border border-slate-700">
-                {BRANDING.handle}
+                {branding.handle}
               </span>
             </div>
           </div>

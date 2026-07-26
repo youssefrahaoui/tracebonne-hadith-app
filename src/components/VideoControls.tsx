@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Palette, Type, Layout, ImageIcon, Eye, Check, Move, Target, RotateCcw, Sparkles, Sliders, ZoomIn, Moon, Star } from 'lucide-react';
-import { BackgroundTheme, TextCustomization, VerticalPosition, HorizontalPosition } from '../types';
-import { BACKGROUND_THEMES } from '../data/themes';
+import { BackgroundTheme, TextCustomization, VerticalPosition, HorizontalPosition, BrandingConfig } from '../types';
+import { BACKGROUND_THEMES, BRANDING } from '../data/themes';
 
 interface VideoControlsProps {
   selectedTheme: BackgroundTheme;
   onSelectTheme: (theme: BackgroundTheme) => void;
   textConfig: TextCustomization;
   onChangeTextConfig: (newConfig: TextCustomization) => void;
+  branding?: BrandingConfig;
+  onChangeBranding?: (newBranding: BrandingConfig) => void;
 }
 
 export const VideoControls: React.FC<VideoControlsProps> = ({
@@ -15,12 +17,30 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
   onSelectTheme,
   textConfig,
   onChangeTextConfig,
+  branding,
+  onChangeBranding,
 }) => {
   const touchpadRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const wmTouchpadRef = useRef<HTMLDivElement | null>(null);
   const [isWmDragging, setIsWmDragging] = useState(false);
+
+  const handleLogoFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        if (ev.target?.result && onChangeBranding) {
+          onChangeBranding({
+            handle: branding?.handle || BRANDING.handle,
+            logoUrl: ev.target.result as string,
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Safe fallbacks for textPos and watermarkPos
   const currentPos = textConfig.textPos || { x: 50, y: 50 };
@@ -547,7 +567,7 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
             <div className="flex items-center gap-2">
               <Eye className="w-4 h-4 text-amber-400" />
               <span className="text-xs font-bold text-slate-200 font-['Cairo']">
-                شعار وعلامة القناة المائية (@TraceBonne)
+                شعار وعلامة القناة المائية ({branding?.handle || BRANDING.handle})
               </span>
             </div>
             <label className="flex items-center gap-2 cursor-pointer bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800">
@@ -559,6 +579,69 @@ export const VideoControls: React.FC<VideoControlsProps> = ({
                 className="accent-amber-500 w-4 h-4 cursor-pointer"
               />
             </label>
+          </div>
+
+          {/* TEMPORARY BRANDING CUSTOMIZATION UI */}
+          <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-200">هوية القناة (Channel Branding)</span>
+              <button
+                type="button"
+                onClick={() => onChangeBranding?.({ handle: BRANDING.handle, logoUrl: BRANDING.logoUrl })}
+                className="text-[11px] text-amber-400 hover:text-amber-300 underline font-medium flex items-center gap-1 transition"
+                title="إعادة الهوية الافتراضية إلى @TraceBonne"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>إعادة ضبط الهوية الافتراضية</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Channel Handle Input */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-300 block">اسم / معرف القناة (Channel Handle):</label>
+                <input
+                  type="text"
+                  value={branding?.handle || BRANDING.handle}
+                  onChange={(e) =>
+                    onChangeBranding?.({
+                      handle: e.target.value,
+                      logoUrl: branding?.logoUrl || BRANDING.logoUrl,
+                    })
+                  }
+                  placeholder="@TraceBonne"
+                  dir="ltr"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-amber-400 font-mono font-bold focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Upload Logo / Logo Preview */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-semibold text-slate-300 block">شعار القناة (Upload Logo):</label>
+                <div className="flex items-center gap-2">
+                  <img
+                    src={branding?.logoUrl || BRANDING.logoUrl}
+                    alt="Channel Logo Preview"
+                    className="w-8 h-8 rounded-full object-cover border border-amber-400 shrink-0"
+                  />
+                  <label className="flex-1 cursor-pointer bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/50 rounded-xl px-3 py-1.5 text-xs text-slate-300 text-center font-medium transition flex items-center justify-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-amber-400" />
+                    <span>تغيير الشعار</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Required Prompt Note */}
+            <p className="text-[11px] text-amber-400/90 font-medium flex items-center gap-1.5 pt-1.5 border-t border-slate-900">
+              <span>ملاحظة: سيتم إعادة تعيين الهوية إلى @TraceBonne عند تحديث الصفحة.</span>
+            </p>
           </div>
 
           {textConfig.showWatermark && (

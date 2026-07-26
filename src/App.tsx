@@ -8,13 +8,19 @@ import { VideoControls } from './components/VideoControls';
 import { ExportModal } from './components/ExportModal';
 import { HelpModal } from './components/HelpModal';
 
-import { BackgroundTheme, HadithSegment, TextCustomization, AudioState, ExportProgress } from './types';
+import { BackgroundTheme, HadithSegment, TextCustomization, AudioState, ExportProgress, BrandingConfig } from './types';
 import { BACKGROUND_THEMES, DEFAULT_HADITHS, BRANDING } from './data/themes';
 import { splitTextIntoSegments } from './utils/hadithUtils';
 import { exportVideoMP4 } from './utils/videoExporter';
 
 export default function App() {
-  // 1. BACKGROUND THEME STATE (Default Theme #1)
+  // 1. BRANDING STATE (Default TraceBonne, session-only)
+  const [branding, setBranding] = useState<BrandingConfig>({
+    handle: BRANDING.handle,   // '@TraceBonne'
+    logoUrl: BRANDING.logoUrl, // 'https://i.imgur.com/BifuQtj.jpg'
+  });
+
+  // 2. BACKGROUND THEME STATE (Default Theme #1)
   const [selectedTheme, setSelectedTheme] = useState<BackgroundTheme>(BACKGROUND_THEMES[0]);
 
   // 2. HADITH TEXT STATE (Default Hadith #1)
@@ -309,6 +315,7 @@ export default function App() {
         outroAudioBlob: audioState.outroAudioBlob,
         outroDuration: audioState.outroDuration,
         textConfig,
+        branding,
         onProgress: (progress, statusMessage) => {
           setExportProgress((prev) => ({
             ...prev,
@@ -350,15 +357,32 @@ export default function App() {
     <div className="min-h-screen bg-[#0f172a] text-slate-100 font-['Cairo'] flex flex-col selection:bg-amber-500 selection:text-black">
       {/* NAVBAR */}
       <Navbar
+        branding={branding}
         onExportClick={handleExportVideo}
         onHelpClick={() => setShowHelpModal(true)}
       />
 
       {/* MAIN DASHBOARD CONTENT */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 flex flex-col lg:flex-row gap-6 lg:gap-8 xl:gap-10 items-start">
         
+        {/* LEFT / STICKY COLUMN: Live 9:16 Video Preview & Outro (Top on mobile, Left/Sticky on desktop) */}
+        <div className="w-full lg:w-[380px] lg:shrink-0 lg:sticky lg:top-16 lg:self-start order-1 lg:order-2">
+          <VideoCanvasPreview
+            theme={selectedTheme}
+            segments={segments}
+            textConfig={textConfig}
+            currentTime={audioState.currentTime}
+            mainAudioDuration={audioState.duration}
+            outroAudioDuration={audioState.outroDuration}
+            isPlaying={audioState.isPlaying}
+            branding={branding}
+            onTogglePlay={handleTogglePlay}
+            onSeek={handleSeek}
+          />
+        </div>
+
         {/* RIGHT / MAIN COLUMN: Hadith Selector, Audio, Sync, Controls */}
-        <div className="lg:col-span-7 space-y-6">
+        <div className="flex-1 min-w-0 w-full space-y-6 order-2 lg:order-1">
           
           {/* 1. Hadith Selector & Paste Mode */}
           <HadithSelector
@@ -394,25 +418,10 @@ export default function App() {
             onSelectTheme={setSelectedTheme}
             textConfig={textConfig}
             onChangeTextConfig={setTextConfig}
+            branding={branding}
+            onChangeBranding={setBranding}
           />
 
-        </div>
-
-        {/* LEFT / STICKY COLUMN: Live 9:16 Video Preview & Outro */}
-        <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-20">
-            <VideoCanvasPreview
-              theme={selectedTheme}
-              segments={segments}
-              textConfig={textConfig}
-              currentTime={audioState.currentTime}
-              mainAudioDuration={audioState.duration}
-              outroAudioDuration={audioState.outroDuration}
-              isPlaying={audioState.isPlaying}
-              onTogglePlay={handleTogglePlay}
-              onSeek={handleSeek}
-            />
-          </div>
         </div>
 
       </main>
@@ -426,7 +435,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <span>القناة:</span>
             <span dir="ltr" className="font-mono text-amber-400 font-bold">
-              {BRANDING.handle}
+              {branding.handle}
             </span>
           </div>
         </div>
