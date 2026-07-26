@@ -3,10 +3,12 @@ import { Article } from '../data/articles';
 import { getStoredArticles } from '../utils/articleStore';
 import { BookOpen, Clock, ArrowLeft, X, Sparkles, Share2, Check } from 'lucide-react';
 
-export const ArticlesSection: React.FC = () => {
+interface ArticlesSectionProps {
+  onNavigateArticle?: (slug: string) => void;
+}
+
+export const ArticlesSection: React.FC<ArticlesSectionProps> = ({ onNavigateArticle }) => {
   const [articles, setArticles] = useState<Article[]>([]);
-  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const loadArticles = () => {
     const list = getStoredArticles();
@@ -22,12 +24,12 @@ export const ArticlesSection: React.FC = () => {
     };
   }, []);
 
-  const handleShare = (article: Article) => {
-    const shareUrl = window.location.href;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(`${article.title}\n${shareUrl}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+  const handleOpenArticle = (slug: string) => {
+    if (onNavigateArticle) {
+      onNavigateArticle(slug);
+    } else {
+      window.history.pushState(null, '', `/blog/${slug}`);
+      window.dispatchEvent(new Event('popstate'));
     }
   };
 
@@ -93,7 +95,7 @@ export const ArticlesSection: React.FC = () => {
                 {/* Action Button */}
                 <div className="pt-2 border-t border-slate-800/60">
                   <button
-                    onClick={() => setSelectedArticle(article)}
+                    onClick={() => handleOpenArticle(article.id)}
                     className="w-full py-2.5 px-4 rounded-xl bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-amber-300 text-xs sm:text-sm font-bold border border-slate-700 hover:border-amber-400 transition flex items-center justify-center gap-2 group/btn shadow-md"
                   >
                     <span>اقرأ المقال الكامل</span>
@@ -106,110 +108,6 @@ export const ArticlesSection: React.FC = () => {
         </div>
 
       </div>
-
-      {/* ARTICLE READER MODAL */}
-      {selectedArticle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-          <div 
-            className="relative w-full max-w-3xl max-h-[90vh] bg-slate-900 border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col font-['Cairo'] text-slate-100"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="relative h-48 sm:h-64 w-full shrink-0 overflow-hidden">
-              <img
-                src={selectedArticle.imageUrl}
-                alt={selectedArticle.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-slate-900/30" />
-              
-              {/* Close Button */}
-              <button
-                onClick={() => setSelectedArticle(null)}
-                className="absolute top-4 left-4 p-2.5 rounded-full bg-slate-950/80 text-slate-300 hover:text-white hover:bg-slate-900 transition border border-slate-700/80 z-10"
-                aria-label="إغلاق"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              {/* Title & Metadata Over Banner */}
-              <div className="absolute bottom-4 right-4 left-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-md bg-amber-500/90 text-slate-950 font-bold text-xs">
-                    {selectedArticle.category}
-                  </span>
-                  <span className="text-xs text-slate-300 flex items-center gap-1 bg-slate-900/80 px-2 py-0.5 rounded border border-slate-700">
-                    <Clock className="w-3 h-3 text-amber-400" />
-                    {selectedArticle.readTime}
-                  </span>
-                </div>
-                <h2 className="text-lg sm:text-2xl font-black text-white leading-tight font-['Cairo']">
-                  {selectedArticle.title}
-                </h2>
-              </div>
-            </div>
-
-            {/* Modal Content Scroll Area */}
-            <div className="p-6 overflow-y-auto space-y-6 text-slate-300 text-sm sm:text-base leading-relaxed">
-              
-              {/* Introduction */}
-              <p className="text-slate-200 text-base sm:text-lg font-semibold bg-amber-500/10 p-4 rounded-xl border-r-4 border-amber-400 font-['Amiri'] leading-loose">
-                {selectedArticle.content.intro}
-              </p>
-
-              {/* Article Sections */}
-              <div className="space-y-6">
-                {selectedArticle.content.sections.map((sec, idx) => (
-                  <div key={idx} className="space-y-2">
-                    <h3 className="text-base sm:text-lg font-bold text-amber-300 flex items-center gap-2 border-b border-slate-800 pb-1.5">
-                      <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
-                      {sec.title}
-                    </h3>
-                    <p className="text-slate-300 text-xs sm:text-sm leading-relaxed pr-3">
-                      {sec.body}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Conclusion */}
-              <div className="p-4 rounded-xl bg-slate-950 border border-amber-500/20 text-xs sm:text-sm text-amber-200/90 font-['Amiri'] leading-loose">
-                <strong className="text-amber-400 block font-['Cairo'] text-xs mb-1">الخلاصة والغاية:</strong>
-                {selectedArticle.content.conclusion}
-              </div>
-
-            </div>
-
-            {/* Modal Footer Controls */}
-            <div className="px-6 py-3.5 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between gap-4 shrink-0">
-              <button
-                onClick={() => handleShare(selectedArticle)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition flex items-center gap-2"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4 text-emerald-400" />
-                    <span>تم النسخ!</span>
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="w-4 h-4 text-amber-400" />
-                    <span>مشاركة المقال</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                onClick={() => setSelectedArticle(null)}
-                className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm transition shadow-lg shadow-amber-500/20"
-              >
-                إغلاق المقال
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
 
     </section>
   );

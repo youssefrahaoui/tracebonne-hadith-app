@@ -8,6 +8,8 @@ import { VideoControls } from './components/VideoControls';
 import { ExportModal } from './components/ExportModal';
 import { HelpModal } from './components/HelpModal';
 import { ArticlesSection } from './components/ArticlesSection';
+import { ArticlePage } from './components/ArticlePage';
+import { getStoredArticles } from './utils/articleStore';
 import { Footer } from './components/Footer';
 import { LegalModal, LegalModalType } from './components/LegalModal';
 import { AdminLoginModal } from './components/AdminLoginModal';
@@ -85,6 +87,18 @@ export default function App() {
   const [legalModalType, setLegalModalType] = useState<LegalModalType>(null);
   const [showAdminLogin, setShowAdminLogin] = useState<boolean>(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState<boolean>(false);
+  const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
+
+  // Sync route on popstate or pushstate
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // Detect secret URL parameter (?access=admin) to open Admin Login automatically
   useEffect(() => {
@@ -368,6 +382,23 @@ export default function App() {
     a.click();
     document.body.removeChild(a);
   };
+
+  // Route check for single article page (/blog/[slug])
+  if (currentPath.startsWith('/blog/') || currentPath === '/blog') {
+    const slug = currentPath.replace('/blog/', '').replace('/blog', '');
+    const articles = getStoredArticles();
+    const foundArticle = articles.find((a) => a.id === slug) || articles[0];
+
+    return (
+      <ArticlePage
+        article={foundArticle}
+        onBack={() => {
+          window.history.pushState(null, '', '/');
+          window.dispatchEvent(new Event('popstate'));
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0f172a] text-slate-100 font-['Cairo'] flex flex-col selection:bg-amber-500 selection:text-black">
